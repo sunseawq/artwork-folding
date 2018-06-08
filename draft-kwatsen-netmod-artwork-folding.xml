@@ -1,0 +1,286 @@
+<?xml version='1.0'?>
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd">
+<?rfc toc="yes"?>
+<?rfc symrefs="yes"?>
+<?rfc sortrefs="yes" ?>
+<?rfc compact="yes"?>
+<?rfc subcompact="no"?>
+<?rfc linkmailto="no" ?>
+<?rfc editing="no" ?>
+<?rfc comments="yes" ?>
+<?rfc inline="yes"?>
+<?rfc rfcedstyle="yes"?>
+<?rfc-ext allow-markup-in-artwork="yes" ?>
+<?rfc-ext include-index="no" ?>
+<!--<?rfc strict="no"?> -->
+
+<rfc category="bcp"
+     ipr="trust200902"
+     docName="draft-kwatsen-netmod-artwork-folding-latest">
+    <front>
+        <title>Handling Long Lines in Artwork in Drafts</title>
+        <author initials="K.W." surname="Watsen" fullname="Kent Watsen">
+            <organization>Juniper Networks</organization>
+            <address>
+                <email>kwatsen@juniper.net</email>
+            </address>
+        </author>
+        <date/>
+        <area>gen</area>
+        <workgroup>Internet Architecture Board (IAB)</workgroup>
+        <keyword>artwork</keyword>
+        <keyword>sourcecode</keyword>
+        <abstract>
+          <t>This document introduces a simple and yet time-proven strategy
+          for handling long lines in artwork in drafts using a backslash ('\') character where
+          line-folding has occurred.  The strategy works on any text based
+          artwork, producing consistent results regardless the artwork 
+          content.   Using a per-artwork notice, the strategy is both
+          self-documenting and enables automated reconstitution of the
+          original artwork.</t>
+        </abstract>
+    </front>
+
+    <middle>
+      <section title="Introduction">
+        <t>Internet drafts many times contain artwork that exceed the 72
+        character limit specified by RFC 7994 <xref target="RFC7994"/>.  The "xml2rfc" utility,
+        in an effort to maintain clean formatting, issues a warning
+        whenever artwork lines exceed 69 characters.  According to
+        RFC Editor, there is currently no convention in place for how
+        to handle long lines, other than clearly indicating that some
+        manipulation has occurred.</t>
+
+        <t>This document introduces a simple and yet time-proven strategy
+        for handling long lines using a backslash ('\') character where
+        line-folding has occurred.  The strategy works on any text based
+        artwork, producing consistent results regardless the artwork 
+        content.   Using a per-artwork notice, the strategy is both
+        self-documenting and enables automated reconstitution of the
+        original artwork.</t>
+      </section>
+
+      <section title="Requirements Language" anchor="requirements-language">
+        <t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL
+        NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED",
+        "MAY", and "OPTIONAL" in this document are to be interpreted as
+        described in BCP 14 <xref target="RFC2119"/> <xref target="RFC8174"/>
+        when, and only when, they appear in all capitals, as shown here.</t>
+      </section>
+
+      <section title="Goals">
+        <section title="Automated folding of long lines in artwork">
+          <t>Automated folding of long lines is needed in order to support
+          draft compilations that entail a) validation of source input
+          files (e.g., YANG, XML, JSON, ABNF, ASN.1) and/or b) dynamic
+          generation of output (e.g., tree diagrams) that are stitched
+          into the final draft to be submitted.</t>
+          <t>Generally, in order for tooling to be able to process input
+          files, the files must be in their original/natural state, which
+          may include having some long lines.  Thus, these source files
+          need to be modified before inclusion in the draft in order to
+          satisfy the line length limits.  This modification SHOULD be
+          automated to reduce effort and errors resulting from manual
+          effort.</t>
+          <t>Similarly, dynamically generated output (e.g., tree diagrams)
+          must also be modified, if necessary, in order for the resulting
+          I-D to satisfy the line length limits.  When needed, this effort
+          again SHOULD be automated to reduce effort and errors
+          resulting from manual effort.</t>
+        </section>
+        <section title="Automated reconstitution of original artwork">
+          <t>Automated reconstitution of the original artwork is needed to
+          support validation of artwork extracted from drafts.  Already
+          YANG modules are extracted from drafts and validated as part of
+          the draft-submission process.  Additionally, there has been
+          some discussion regarding needing to do the same for examples
+          contained within drafts (<xref target="yang-doctors-list"/>).
+          Thus, it SHOULD be possible to mechanically reconstitute artwork
+          in order to satisfy the tooling input parsers.</t>
+        </section>
+      </section>
+
+      <section title="Limitations">
+        <section title="Doesn't work well on graphical artwork">
+          <t>While the solution presented in this document will work on any
+          kind of text-based artwork, it is most useful on artwork that
+          represents sourcecode (e.g., YANG, XML, JSON, etc.) or, more
+          generally, on artwork that has not been laid out in two dimensions
+          (e.g., diagrams).</t>
+          <t>The issue regards the readability of the folded artwork in the
+          draft.  Artwork that is unpredictable is especially susceptible is
+          looking bad when folded; falling into this category are most
+          UML diagrams.  Artwork that is somewhat structured (e.g., YANG tree
+          diagrams <xref target="RFC8340"/>) fair better when folded, as the
+          eyes seem to be able to still see the vertical lines, even when
+          they are interrupted.</t>
+          <t>It is thus NOT RECOMMENDED to use the solution presented in
+          this document on graphical artwork.</t>
+        </section>
+        <section title="Doesn't work as well as format-specific options">
+          <t>The solution presented in this document works generically 
+          for all artwork, as it only views artwork as plain text.
+          However, various formats sometimes have mechanisms that can
+          be used to prevent long lines.</t>
+          <t>For instance, some source formats allow any quoted string
+          to be broken up into substrings separated by a concatenation
+          character ('+'), any of which can by on a different line.</t>
+          <t>In another example, some languages allow factoring out
+          chucks of code out into "functions" or "groupings".  Using
+          such call outs is especially helpful when in some deeply-nested
+          code, as it typically resets the indentation back to the first
+          column.</t>
+          <t>As such, it is RECOMMENDED that authors do as much as
+          possible within the selected format to avoid long lines.</t>
+        </section>
+      </section>
+
+      <section title="Solution" anchor="solution">
+        <t>The following two sections provide the folding and unfolding algorithms
+        that MUST be implemented to align with this BCP.</t>
+        <section title="Folding">
+          <t>Scan the artwork to see if any line exceeds the desired maximum.
+          If no line exceeds the desired maximum, exit (this artwork does not
+          need to be folded).</t>
+          <t>Ensure that the desired maximum is not less than then minumum
+          header "===  NOTE: '\' line wrapping per BCP XX (RFC XXXX) ==="
+          (53 characters).  If the desired maximum is less than this
+          minimum, exit (this artwork can not be folded).</t>
+          <t>Scan the artwork to ensure no existing lines already end with
+          a '\' character on the desired maximum column, as this would be
+          lead to an ambiguous result.  If such a line is found, exit
+          (this artwork cannot be folded).</t>
+          <t>Otherwise, generate a header to be prepended to the output as
+          follows:
+            <list style="empty">
+              <t>The header MUST be exactly the maximum desired length.</t>
+              <t>The header MUST consist of the string " NOTE: '\' line
+              wrapping per BCP XX (RFC XXXX) " (note the space character
+              before and after the text) surrounded by roughly equal number
+              of "=" characters in order to fill up line to the desired
+              maximum length.</t>
+              <t>Add one '\n' character to the end of the header line to
+              terminate that line, and another '\n' character to provide
+              one blank line before that actual folded artwork text begins.</t>
+            </list>
+          </t>
+          <t>For each line in the artwork, from top-to-bottom, if the line
+          exceeds the desired maximum, then fold the line at the desired
+          maximum column by inserting the string "\\n" at the column before
+          the maximum column.  Note that the column before needs to be used
+          in order to enable the '\' character to be placed on the desired
+          maximum column. The result of this operation is that the character
+          that was on the maximum colomn is now the first character of the
+          next line.</t>
+          <t>Continue in this manner until reaching the end of the artwork.
+          Note that this algorithm naturally addresses the case where the
+          remainder of a folded line is still longer than the desired maximum,
+          and hence needs to be folded again, ad infinitum.</t>
+        </section>
+        <section title="Unfolding">
+          <t>Scan the artwork for the above-mentioned header occurring on
+          the first line of the artwork.  If the header is not present on
+          the first line of the artwork, exit (this artwork does not need
+          to be unfolded).</t>
+          <t>Caluculate the folding-column used from the length of the
+          provided header.</t>
+          <t>Remove the 2-line header from the artwork.</t>
+          <t>For each line in the artwork, from top-to-bottom, if the line
+          has a '\' on the folding-column followed by a '\n' character, then
+          remove both the '\' and '\n' characters, which will bring up the
+          next line, and then scan the remainder of the line to see if it
+          again has a '\' after folding-column characters followed by a '\n'
+          character, and so on.</t>
+          <t>Continue in this manner until reaching the end of the artwork.</t>
+        </section>
+
+        <section title="Example" anchor="example">
+          <t>The following self-documenting example illustrates the result
+          of the folding algorithm running over a specific artwork input.</t>
+          <t>The specific input used cannot be presented here, as it would
+          again need to be folded.  Alas, only the result can be provided.</t>
+          <t>Some things to note about the following example:
+            <list style="symbols">
+              <t>This artwork is exactly 69 characters wide, the widest
+              possible before `xml2rfc` starts to issue warnings.</t>
+              <t>The line having the 'x' character on the 69th column
+              would've been illegal input had the '\' been used.</t>
+            </list>
+          </t>
+          <t>
+            <figure>
+              <artwork><![CDATA[
+INSERT_TEXT_FROM_FILE(refs/folding-needed.txt.folded)
+]]></artwork>
+            </figure>
+          </t>
+        </section>
+      </section>
+
+      <section title="Security Considerations" anchor="sec-cons">
+        <t>This BCP has no Security Considerations.</t>
+      </section>
+
+      <section title="IANA Considerations" anchor="iana-cons">
+        <t>This BCP has no IANA Considerations.</t>
+      </section>
+
+    </middle>
+
+    <back>
+
+      <references title="Normative References">
+        <?rfc include="reference.RFC.2119.xml"?>
+        <?rfc include="reference.RFC.8174.xml"?>
+      </references>
+
+      <references title="Informative References">
+        <?rfc include="reference.RFC.7994.xml"?>
+        <?rfc include="reference.RFC.8340.xml"?>
+        <reference anchor="yang-doctors-list" target="https://mailarchive.ietf.org/arch/msg/yang-doctors/DCfBqgfZPAD7afzeDFlQ1Xm2X3g">
+          <front>
+            <title>[yang-doctors] automating yang doctor reviews</title>
+            <author/>
+            <date/>
+          </front>
+        </reference>
+
+      </references>
+
+
+      <!-- APPENDICIES -->
+      <section title="POSIX Shell Script" anchor="foobar">
+        <t>This non-normative appendix section includes a shell script
+        that can both fold and unfold artwork based on the solution
+        presented in this document.</t>
+        <t>As a testament for the simplicity of this solution, note
+        that at the core of the script are the following two one-liners:
+          <figure>
+            <artwork><![CDATA[
+For folding:
+  gsed "/.\{$testcol\}/s/\(.\{$foldcol\}\)/\1\\\\\n/g"
+
+For unfolding:
+  gsed ":x; /[^\t]\\{$foldcol\\}\\\\\$/N; s/\\\\\n/\t/; tx; s/\t//g"
+]]></artwork>
+          </figure>
+        </t>
+        <t>Disclaimer: this script has the limitation of disallowing
+        the input file from containing any TAB ('\t') characters.</t>
+        <t>
+          <figure>
+            <preamble>=====START SCRIPT=====</preamble>
+            <artwork><![CDATA[
+INSERT_TEXT_FROM_FILE(fold-artwork.sh)
+]]></artwork>
+            <postamble>=====END SCRIPT=====</postamble>
+          </figure>
+        </t>
+      </section>
+
+      <section title="Acknowledgements" numbered="no">
+        <t>The authors thank the RFC Editor for confirming that there are no set convention today for handling long lines in artwork. </t>
+      </section>
+    </back>
+
+</rfc>
