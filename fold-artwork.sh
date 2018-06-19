@@ -28,7 +28,7 @@ reversed=0
 infile=""
 outfile=""
 maxcol=69  # default, may be overridden by param
-hdr_txt=" NOTE: '\' line wrapping per BCP XX (RFC XXXX) "
+hdr_txt="=== NOTE: '\' line wrapping per BCP XX (RFC XXXX) ==="
 equal_chars="==========================================="
 
 fold_it() {
@@ -57,7 +57,7 @@ fold_it() {
     exit 1
   fi
 
-  # calculate '=' filled header
+  # calculate '=' character-filled header
   length=${#hdr_txt}
   left_sp=`expr \( "$maxcol" - "$length" \) / 2`
   right_sp=`expr "$maxcol" - "$length" - "$left_sp"`
@@ -145,13 +145,22 @@ process_input() {
     exit 1
   fi
 
-  mincol=`expr ${#hdr_txt} + 6`
-  if [ $maxcol -lt $mincol ]; then
+  min_supported=${#hdr_txt}
+  if [ $maxcol -lt $min_supported ]; then
     echo
-    echo "Error: the folding column cannot be less than $mincol"
+    echo "Error: the folding column cannot be less than $min_supported"
     echo
     exit 1
   fi
+
+  max_supported=`expr ${#equal_chars} + ${#hdr_txt} + ${#equal_chars}`
+  if [ $maxcol -gt $max_supported ]; then
+    echo
+    echo "Error: the folding column cannot be more than $max_supported"
+    echo
+    exit 1
+  fi
+  
 }
 
 

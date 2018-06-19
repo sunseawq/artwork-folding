@@ -25,6 +25,12 @@
                 <email>kwatsen@juniper.net</email>
             </address>
         </author>
+        <author initials="Q.W." surname="Wu" fullname="Qin Wu">
+            <organization>Huawei Technologies</organization>
+            <address>
+                <email>bill.wu@huawei.com</email>
+            </address>
+        </author>
         <date/>
         <area>gen</area>
         <workgroup>Internet Architecture Board (IAB)</workgroup>
@@ -32,30 +38,30 @@
         <keyword>sourcecode</keyword>
         <abstract>
           <t>This document introduces a simple and yet time-proven strategy
-          for handling long lines in artwork in drafts using a backslash ('\') character where
-          line-folding has occurred.  The strategy works on any text based
-          artwork, producing consistent results regardless the artwork 
-          content.   Using a per-artwork notice, the strategy is both
-          self-documenting and enables automated reconstitution of the
-          original artwork.</t>
+          for handling long lines in artwork in drafts using a backslash
+          ('\') character where line-folding has occurred.  The strategy
+          works on any text based artwork, producing consistent results
+          regardless the artwork content.  Using a per-artwork header,
+          the strategy is both self-documenting and enables automated
+          reconstitution of the original artwork.</t>
         </abstract>
     </front>
 
     <middle>
       <section title="Introduction">
         <t>Internet drafts many times contain artwork that exceed the 72
-        character limit specified by RFC 7994 <xref target="RFC7994"/>.  The "xml2rfc" utility,
-        in an effort to maintain clean formatting, issues a warning
-        whenever artwork lines exceed 69 characters.  According to
-        RFC Editor, there is currently no convention in place for how
-        to handle long lines, other than clearly indicating that some
-        manipulation has occurred.</t>
+        character limit specified by RFC 7994 <xref target="RFC7994"/>.
+        The "xml2rfc" utility, in an effort to maintain clean formatting,
+        issues a warning whenever artwork lines exceed 69 characters.
+        According to RFC Editor, there is currently no convention in
+        place for how to handle long lines, other than clearly indicating
+        that some manipulation has occurred.</t>
 
         <t>This document introduces a simple and yet time-proven strategy
         for handling long lines using a backslash ('\') character where
         line-folding has occurred.  The strategy works on any text based
         artwork, producing consistent results regardless the artwork 
-        content.   Using a per-artwork notice, the strategy is both
+        content.   Using a per-artwork header, the strategy is both
         self-documenting and enables automated reconstitution of the
         original artwork.</t>
       </section>
@@ -138,36 +144,42 @@
       <section title="Solution" anchor="solution">
         <t>The following two sections provide the folding and unfolding algorithms
         that MUST be implemented to align with this BCP.</t>
+        <section title="Header" anchor="header">
+          <t>Any artwork that has been folded as specificed by this document
+          MUST contain the header described in this section.</t>
+          <t>The header is two lines long.</t>
+          <t>The first line is the following 53-character string that has been
+          padded with roughly equal numbers of equal ('=') characters to reach
+          the artwork's maximum line length.  This line is self-describing in
+          three ways: use of '\' character, identification of BCP/RFC, and
+          identification of what the maximum line length is for the artwork.
+          Following is the mimimal header string (53-characters):</t>
+          <t>
+            <figure>
+              <artwork><![CDATA[
+=== NOTE: '\' line wrapping per BCP XX (RFC XXXX) ===
+]]></artwork>
+            </figure>
+          </t>
+          <t>The second line is a blank line.  This line provides visual seperation
+          for the readability.</t>
+        </section>
         <section title="Folding">
           <t>Scan the artwork to see if any line exceeds the desired maximum.
           If no line exceeds the desired maximum, exit (this artwork does not
           need to be folded).</t>
           <t>Ensure that the desired maximum is not less than then minumum
-          header "===  NOTE: '\' line wrapping per BCP XX (RFC XXXX) ==="
-          (53 characters).  If the desired maximum is less than this
-          minimum, exit (this artwork can not be folded).</t>
+          header, which is 53 characters.  If the desired maximum is less
+          than this minimum, exit (this artwork can not be folded).</t>
           <t>Scan the artwork to ensure no existing lines already end with
           a '\' character on the desired maximum column, as this would be
           lead to an ambiguous result.  If such a line is found, exit
           (this artwork cannot be folded).</t>
-          <t>Otherwise, generate a header to be prepended to the output as
-          follows:
-            <list style="empty">
-              <t>The header MUST be exactly the maximum desired length.</t>
-              <t>The header MUST consist of the string " NOTE: '\' line
-              wrapping per BCP XX (RFC XXXX) " (note the space character
-              before and after the text) surrounded by roughly equal number
-              of "=" characters in order to fill up line to the desired
-              maximum length.</t>
-              <t>Add one '\n' character to the end of the header line to
-              terminate that line, and another '\n' character to provide
-              one blank line before that actual folded artwork text begins.</t>
-            </list>
-          </t>
-          <t>For each line in the artwork, from top-to-bottom, if the line
-          exceeds the desired maximum, then fold the line at the desired
-          maximum column by inserting the string "\\n" at the column before
-          the maximum column.  Note that the column before needs to be used
+          <t>For each line in the artwork, from top-to-bottom, if the
+          line exceeds the desired maximum, then fold the line at the
+          desired maximum column by inserting the string "\\n"
+          (backlash followed by line return) at the column before the
+          maximum column.  Note that the column before needs to be used
           in order to enable the '\' character to be placed on the desired
           maximum column. The result of this operation is that the character
           that was on the maximum colomn is now the first character of the
@@ -178,10 +190,10 @@
           and hence needs to be folded again, ad infinitum.</t>
         </section>
         <section title="Unfolding">
-          <t>Scan the artwork for the above-mentioned header occurring on
-          the first line of the artwork.  If the header is not present on
-          the first line of the artwork, exit (this artwork does not need
-          to be unfolded).</t>
+          <t>Scan the beginning of the artwork for the header described in
+          <xref target="header"/>.  If the header is not present, starting
+          on the first line of the artwork, exit (this artwork does not
+          need to be unfolded).</t>
           <t>Caluculate the folding-column used from the length of the
           provided header.</t>
           <t>Remove the 2-line header from the artwork.</t>
