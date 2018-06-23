@@ -31,6 +31,25 @@
                 <email>bill.wu@huawei.com</email>
             </address>
         </author>
+        <author initials="A." surname="Farrel" fullname="Adrian Farrel" >
+            <organization>Juniper Networks</organization>
+            <address>
+                <email>afarrel@juniper.net</email>
+            </address>
+       </author>
+       <author initials="B." surname="Claise" fullname="Benoît Claise" >
+           <organization abbrev="Cisco Systems, Inc.">Cisco Systems,
+           Inc.</organization>
+           <address>
+             <postal>
+                 <street>De Kleetlaan 6a b1</street>
+                 <city>1831 Diegem</city>
+                 <country>Belgium</country>
+             </postal>
+             <phone>+32 2 704 5622</phone>
+             <email>bclaise@cisco.com</email>
+           </address>
+    </author>  
         <date/>
         <area>gen</area>
         <workgroup>Internet Architecture Board (IAB)</workgroup>
